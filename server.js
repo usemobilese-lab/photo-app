@@ -59,31 +59,101 @@ app.post('/upload', upload.array('photos'), (req, res) => {
   `);
 });
 
-// Gallery
+// ====== New Gallery Theme ======
 app.get('/gallery', (req, res) => {
   const files = fs.readdirSync(uploadBase);
 
-  if (files.length === 0) return res.send("<h1>No photos uploaded yet</h1><a href='/upload-form'>Upload Now</a>");
+  if (files.length === 0) {
+    return res.send(`
+      <body style="font-family:sans-serif;background:#121212;color:white;text-align:center;padding:50px;">
+        <h1>😔 No photos uploaded yet</h1>
+        <a href='/upload-form' style="color:#00c3ff;font-size:18px;text-decoration:none;">⬆️ Upload Now</a>
+      </body>
+    `);
+  }
 
   let html = `
-  <h1>📷 Uploaded Photos</h1>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;">
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+        margin: 20px;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        overflow: hidden;
+        transition: transform 0.2s;
+      }
+      .card:hover {
+        transform: scale(1.03);
+      }
+      .card img {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+      }
+      .card .actions {
+        padding: 10px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .btn {
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: bold;
+      }
+      .delete-btn {
+        background: #e74c3c;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+      }
+      .download-btn {
+        background: #2ecc71;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📷 Uploaded Photos</h1>
+    <div class="gallery">
   `;
 
   files.forEach(file => {
     html += `
-      <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
-        <img src="/uploads/${file}" style="width:100%;height:150px;object-fit:cover;border-radius:5px;">
-        <form action="/delete" method="POST" style="margin-top:5px;">
-          <input type="hidden" name="filename" value="${file}">
-          <button type="submit" style="background:red;color:#fff;border:none;padding:6px 12px;border-radius:5px;">Delete</button>
-        </form>
-        <a href="/download/${file}" style="display:inline-block;margin-top:5px;background:green;color:#fff;padding:6px 12px;border-radius:5px;text-decoration:none;">Download</a>
+      <div class="card">
+        <img src="/uploads/${file}" alt="photo">
+        <div class="actions">
+          <form action="/delete" method="POST">
+            <input type="hidden" name="filename" value="${file}">
+            <button type="submit" class="btn delete-btn">🗑 Delete</button>
+          </form>
+          <a href="/download/${file}" class="btn download-btn">⬇ Download</a>
+        </div>
       </div>
     `;
   });
 
-  html += "</div><br><a href='/'>⬅ Back to Home</a>";
+  html += `
+    </div>
+    <br><center><a href='/'>⬅ Back to Home</a></center>
+  </body>
+  `;
   res.send(html);
 });
 
