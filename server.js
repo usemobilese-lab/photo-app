@@ -13,7 +13,7 @@ if (!fs.existsSync(uploadBase)) fs.mkdirSync(uploadBase);
 app.use('/uploads', express.static(uploadBase));
 app.use(express.urlencoded({ extended: true })); // parse form data
 
-// ====== Multer Default Setup ======
+// ====== Multer Setup ======
 function createMulter(albumPath) {
   const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, albumPath),
@@ -89,7 +89,7 @@ app.post('/upload', (req, res, next) => {
   });
 });
 
-// ====== Albums List ======
+// ====== Modern Albums List with Delete Option ======
 app.get('/albums', (req, res) => {
   const albums = fs.readdirSync(uploadBase, { withFileTypes: true })
     .filter(dirent => dirent.isDirectory())
@@ -99,15 +99,58 @@ app.get('/albums', (req, res) => {
     return res.send("<h1>😔 No albums created yet</h1><a href='/create-album'>➕ Create one</a>");
   }
 
-  let html = "<h1>📂 Albums</h1><ul>";
+  let html = `
+  <head>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 20px; }
+      h1 { text-align: center; color: #333; }
+      .albums { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+      .album-card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; transition: transform 0.2s; }
+      .album-card:hover { transform: scale(1.05); }
+      .album-icon { font-size: 50px; color: #f1c40f; }
+      .album-title { margin-top: 10px; font-weight: bold; color: #333; text-decoration: none; display: block; }
+      form { margin-top: 10px; }
+      .delete-btn { background:#e74c3c;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer; }
+    </style>
+  </head>
+  <body>
+    <h1>📂 Albums</h1>
+    <div class="albums">
+  `;
+
   albums.forEach(album => {
-    html += `<li><a href="/album/${album}">${album}</a></li>`;
+    html += `
+      <div class="album-card">
+        <div class="album-icon">📁</div>
+        <a href="/album/${album}" class="album-title">${album}</a>
+        <form action="/delete-album" method="POST">
+          <input type="hidden" name="album" value="${album}">
+          <button type="submit" class="delete-btn">🗑 Delete Album</button>
+        </form>
+      </div>
+    `;
   });
-  html += "</ul><br><a href='/create-album'>➕ Create Album</a>";
+
+  html += `
+    </div>
+    <br><center><a href='/create-album'>➕ Create Album</a></center>
+  </body>
+  `;
   res.send(html);
 });
 
-// ====== Show Album Photos ======
+// ====== Delete Album ======
+app.post('/delete-album', (req, res) => {
+  const album = req.body.album;
+  const albumPath = path.join(uploadBase, album);
+
+  if (fs.existsSync(albumPath)) {
+    fs.rmSync(albumPath, { recursive: true, force: true });
+  }
+  res.redirect('/albums');
+});
+
+// ====== Modern Album Gallery ======
 app.get('/album/:name', (req, res) => {
   const albumPath = path.join(uploadBase, req.params.name);
   if (!fs.existsSync(albumPath)) return res.send("Album not found");
@@ -117,11 +160,41 @@ app.get('/album/:name', (req, res) => {
     return res.send(`<h1>📸 Album: ${req.params.name}</h1><p>No photos yet.</p><a href='/upload-form'>Upload Now</a>`);
   }
 
-  let html = `<h1>📸 Album: ${req.params.name}</h1>`;
+  let html = `
+  <head>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 20px; }
+      h1 { text-align: center; color: #333; }
+      .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
+      .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.2s; }
+      .card:hover { transform: scale(1.03); }
+      .card img { width: 100%; height: 180px; object-fit: cover; transition: transform 0.3s; }
+      .card img:hover { transform: scale(1.05); }
+      .actions { padding: 10px; display: flex; justify-content: center; }
+      .download-btn { background:#2ecc71;color:#fff;padding:6px 12px;border-radius:6px;text-decoration:none; }
+    </style>
+  </head>
+  <body>
+    <h1>📸 Album: ${req.params.name}</h1>
+    <div class="gallery">
+  `;
+
   files.forEach(file => {
-    html += `<img src="/uploads/${req.params.name}/${file}" style="width:150px;margin:5px;">`;
+    html += `
+      <div class="card">
+        <img src="/uploads/${req.params.name}/${file}" alt="photo">
+        <div class="actions">
+          <a href="/uploads/${req.params.name}/${file}" download class="download-btn">⬇ Download</a>
+        </div>
+      </div>
+    `;
   });
-  html += "<br><a href='/albums'>⬅ Back to Albums</a>";
+
+  html += `
+    </div>
+    <br><center><a href='/albums'>⬅ Back to Albums</a></center>
+  </body>
+  `;
   res.send(html);
 });
 
