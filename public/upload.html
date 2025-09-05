@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Photos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 320px;
+    }
+    input[type="file"] {
+      margin: 15px 0;
+    }
+    button {
+      background: #007BFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .links {
+      margin-top: 15px;
+    }
+    .links a {
+      display: inline-block;
+      margin: 5px;
+      text-decoration: none;
+      color: #007BFF;
+    }
+    #preview {
+      margin-top: 15px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 80px);
+      gap: 10px;
+      justify-content: center;
+    }
+    #preview img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Upload a Photo</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+      <input type="file" name="photos" multiple required onchange="previewFiles()" />
+      <button type="submit">Upload</button>
+    </form>
+    <div id="preview"></div>
+    <div class="links">
+      <a href="/gallery">Go to Gallery</a> |
+      <a href="/">⬅ Back to Home</a>
+    </div>
+  </div>
+
+  <script>
+    function previewFiles() {
+      const preview = document.getElementById('preview');
+      const files = document.querySelector('input[type=file]').files;
+      preview.innerHTML = "";
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+</body>
+</html>

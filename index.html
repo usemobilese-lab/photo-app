@@ -3,18 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photo App</title>
+  <title>📸 Photo Uploader</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1f1c2c, #928dab);
+      color: #fff;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin-bottom: 15px;
+      font-size: 2.2em;
+    }
+
+    p {
+      margin-bottom: 30px;
+      font-size: 1.1em;
+      opacity: 0.85;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    a {
+      padding: 14px;
+      background: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 1em;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    a:hover {
+      background: #66bb6a;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to Photo App</h1>
+  <div class="container">
+    <h1>📸 Photo Uploader</h1>
+    <p>Upload, View, Download and Manage your photos easily.</p>
 
-  <p><a href="/auth/google">Login with Google</a></p>
-
-  <form action="/upload" method="post" enctype="multipart/form-data">
-    <input type="file" name="photo" required />
-    <button type="submit">Upload Photo</button>
-  </form>
-
-  <p><a href="/gallery">View Gallery</a></p>
+    <div class="btn-grid">
+      <a href="/upload-form">⬆ Upload</a>
+      <a href="/gallery">📷 Gallery</a>
+    </div>
+  </div>
 </body>
 </html>

@@ -1,105 +1,88 @@
-require("dotenv").config();
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const session = require("express-session");
-const { OAuth2Client } = require("google-auth-library");
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Google OAuth2 Client
-const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:8080/oauth2callback";
+// ====== File Upload Setup ======
+const uploadBase = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadBase)) fs.mkdirSync(uploadBase);
 
-const oauth2Client = new OAuth2Client(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+app.use('/uploads', express.static(uploadBase));
+app.use(express.static(path.join(__dirname))); // serve static files (html, css, js)
 
-// Middlewares
-app.use(express.static("public"));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use(express.urlencoded({ extended: true }));
+// ====== Routes ======
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "default_secret",
-    resave: false,
-    saveUninitialized: true,
-  })
-);
-
-// Multer setup
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) =>
-    cb(null, Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname)),
+// Root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
-const upload = multer({ storage });
 
-// Middleware: Auth check
-function isAuthenticated(req, res, next) {
-  if (req.session.user) next();
-  else res.redirect("/login");
-}
+// Upload Form (new design page)
+app.get('/upload', (req, res) => {
+  res.sendFile(path.join(__dirname, 'upload.html'));
+});
 
-// Routes
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
-
-app.get("/login", (req, res) => {
-  const url = oauth2Client.generateAuthUrl({
-    access_type: "offline",
-    scope: ["profile", "email"],
+// Upload API
+app.post('/upload', (req, res) => {
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadBase),
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + '-' + file.originalname);
+    }
   });
-  res.redirect(url);
+
+  const upload = multer({ storage }).array('photos');
+  upload(req, res, err => {
+    if (err) return res.send("Upload error: " + err.message);
+    res.send(`<h2>Photos uploaded successfully!</h2><a href="/gallery">Go to Gallery</a>`);
+  });
 });
-
-app.get("/oauth2callback", async (req, res) => {
-  const code = req.query.code;
-  try {
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-
-    const ticket = await oauth2Client.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-    req.session.user = { name: payload.name, email: payload.email, picture: payload.picture };
-
-    res.redirect("/gallery");
-  } catch (err) {
-    console.error("OAuth error:", err);
-    res.status(500).send("Authentication failed");
-  }
-});
-
-app.get("/logout", (req, res) => {
-  req.session.destroy(() => res.redirect("/"));
-});
-
-// Upload photo
-app.post("/upload", isAuthenticated, upload.single("photo"), (req, res) => res.redirect("/gallery"));
 
 // Gallery
-app.get("/gallery", isAuthenticated, (req, res) => {
-  fs.readdir(path.join(__dirname, "uploads"), (err, files) => {
-    if (err) return res.status(500).send("Error loading gallery");
+app.get('/gallery', (req, res) => {
+  const files = fs.readdirSync(uploadBase);
 
-    const images = files.map((file) => "/uploads/" + file);
-    const user = req.session.user;
-    let html = `<h1>Welcome, ${user.name}</h1>`;
-    html += `<a href="/logout">Logout</a><br><br>`;
-    html += `<form method="POST" enctype="multipart/form-data" action="/upload">
-               <input type="file" name="photo" required />
-               <button type="submit">Upload</button>
-             </form><br>`;
-    html += `<h2>Gallery</h2>`;
-    images.forEach((img) => (html += `<img src="${img}" width="200" style="margin:10px"/>`));
-    res.send(html);
+  if (files.length === 0) return res.send("<h1>No photos uploaded yet</h1>");
+
+  let html = `
+  <h1>📷 Uploaded Photos</h1>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;">
+  `;
+
+  files.forEach(file => {
+    html += `
+      <div style="background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
+        <img src="/uploads/${file}" style="width:100%;height:150px;object-fit:cover;border-radius:5px;">
+        <form action="/delete" method="POST">
+          <input type="hidden" name="filename" value="${file}">
+          <button type="submit" style="background:red;color:#fff;border:none;padding:6px 12px;border-radius:5px;">Delete</button>
+        </form>
+        <a href="/download/${file}" style="display:inline-block;margin-top:5px;background:green;color:#fff;padding:6px 12px;border-radius:5px;text-decoration:none;">Download</a>
+      </div>
+    `;
   });
+
+  html += "</div><br><a href='/'>⬅ Back to Home</a>";
+  res.send(html);
 });
 
-// Start server
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// Delete
+app.post('/delete', express.urlencoded({ extended: true }), (req, res) => {
+  const filePath = path.join(uploadBase, req.body.filename);
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  res.redirect('/gallery');
+});
+
+// Download
+app.get('/download/:filename', (req, res) => {
+  const filePath = path.join(uploadBase, req.params.filename);
+  if (fs.existsSync(filePath)) res.download(filePath);
+  else res.send("<h2>File not found</h2>");
+});
+
+// Start Server
+app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
