@@ -6,23 +6,24 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// ====== File Upload Setup ======
+// ====== File Upload Base ======
 const uploadBase = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadBase)) fs.mkdirSync(uploadBase);
 
 app.use('/uploads', express.static(uploadBase));
-app.use(express.static(path.join(__dirname))); // serve static files (html, css, js)
 app.use(express.urlencoded({ extended: true })); // parse form data
 
-// ====== Multer Setup ======
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadBase),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
-  }
-});
-const upload = multer({ storage });
+// ====== Multer Default Setup ======
+function createMulter(albumPath) {
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, albumPath),
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+  });
+  return multer({ storage });
+}
 
 // ====== Routes ======
 
@@ -30,146 +31,99 @@ const upload = multer({ storage });
 app.get('/', (req, res) => {
   res.send(`
     <h1>📸 Welcome to Photo App</h1>
-    <a href="/upload-form">Upload a Photo</a> | 
-    <a href="/gallery">View Gallery</a>
+    <a href="/albums">📂 View Albums</a> | 
+    <a href="/create-album">➕ Create Album</a> | 
+    <a href="/upload-form">⬆️ Upload Photo</a>
   `);
 });
 
-// Upload Form
+// ====== Album Creation ======
+app.get('/create-album', (req, res) => {
+  res.send(`
+    <h1>Create New Album</h1>
+    <form action="/create-album" method="POST">
+      <input type="text" name="album" placeholder="Album Name" required />
+      <button type="submit">Create</button>
+    </form>
+    <br><a href="/albums">Back to Albums</a>
+  `);
+});
+
+app.post('/create-album', (req, res) => {
+  const albumPath = path.join(uploadBase, req.body.album);
+  if (!fs.existsSync(albumPath)) fs.mkdirSync(albumPath);
+  res.redirect('/albums');
+});
+
+// ====== Upload Form with Album Selection ======
 app.get('/upload-form', (req, res) => {
+  const albums = fs.readdirSync(uploadBase, { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name);
+
+  let options = albums.map(a => `<option value="${a}">${a}</option>`).join("");
+
   res.send(`
     <h1>Upload a Photo</h1>
     <form action="/upload" method="POST" enctype="multipart/form-data">
+      <label>Select Album:</label>
+      <select name="album">${options}</select><br><br>
       <input type="file" name="photos" multiple required />
       <button type="submit">Upload</button>
     </form>
-    <br>
-    <a href="/gallery">Go to Gallery</a>
+    <br><a href="/albums">Back to Albums</a>
   `);
 });
 
-// Upload API
-app.post('/upload', upload.array('photos'), (req, res) => {
-  if (!req.files || req.files.length === 0) {
-    return res.send("<h2>No files selected!</h2><a href='/upload-form'>Try Again</a>");
-  }
-  res.send(`
-    <h2>✅ ${req.files.length} photo(s) uploaded successfully!</h2>
-    <a href="/gallery">Go to Gallery</a>
-  `);
-});
+// Handle Upload
+app.post('/upload', (req, res, next) => {
+  const album = req.body.album || "General";
+  const albumPath = path.join(uploadBase, album);
 
-// ====== New Gallery Theme ======
-app.get('/gallery', (req, res) => {
-  const files = fs.readdirSync(uploadBase);
+  if (!fs.existsSync(albumPath)) fs.mkdirSync(albumPath);
 
-  if (files.length === 0) {
-    return res.send(`
-      <body style="font-family:sans-serif;background:#121212;color:white;text-align:center;padding:50px;">
-        <h1>😔 No photos uploaded yet</h1>
-        <a href='/upload-form' style="color:#00c3ff;font-size:18px;text-decoration:none;">⬆️ Upload Now</a>
-      </body>
-    `);
-  }
-
-  let html = `
-  <head>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f4f6f9;
-        margin: 20px;
-      }
-      h1 {
-        text-align: center;
-        color: #333;
-      }
-      .gallery {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
-      }
-      .card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        overflow: hidden;
-        transition: transform 0.2s;
-      }
-      .card:hover {
-        transform: scale(1.03);
-      }
-      .card img {
-        width: 100%;
-        height: 180px;
-        object-fit: cover;
-      }
-      .card .actions {
-        padding: 10px;
-        display: flex;
-        justify-content: space-between;
-      }
-      .btn {
-        padding: 6px 12px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: bold;
-      }
-      .delete-btn {
-        background: #e74c3c;
-        color: #fff;
-        border: none;
-        cursor: pointer;
-      }
-      .download-btn {
-        background: #2ecc71;
-        color: #fff;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>📷 Uploaded Photos</h1>
-    <div class="gallery">
-  `;
-
-  files.forEach(file => {
-    html += `
-      <div class="card">
-        <img src="/uploads/${file}" alt="photo">
-        <div class="actions">
-          <form action="/delete" method="POST">
-            <input type="hidden" name="filename" value="${file}">
-            <button type="submit" class="btn delete-btn">🗑 Delete</button>
-          </form>
-          <a href="/download/${file}" class="btn download-btn">⬇ Download</a>
-        </div>
-      </div>
-    `;
+  const upload = createMulter(albumPath).array('photos');
+  upload(req, res, err => {
+    if (err) return res.send("Upload error: " + err.message);
+    res.redirect(`/album/${album}`);
   });
+});
 
-  html += `
-    </div>
-    <br><center><a href='/'>⬅ Back to Home</a></center>
-  </body>
-  `;
+// ====== Albums List ======
+app.get('/albums', (req, res) => {
+  const albums = fs.readdirSync(uploadBase, { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name);
+
+  if (albums.length === 0) {
+    return res.send("<h1>😔 No albums created yet</h1><a href='/create-album'>➕ Create one</a>");
+  }
+
+  let html = "<h1>📂 Albums</h1><ul>";
+  albums.forEach(album => {
+    html += `<li><a href="/album/${album}">${album}</a></li>`;
+  });
+  html += "</ul><br><a href='/create-album'>➕ Create Album</a>";
   res.send(html);
 });
 
-// Delete
-app.post('/delete', (req, res) => {
-  const filePath = path.join(uploadBase, req.body.filename);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  res.redirect('/gallery');
+// ====== Show Album Photos ======
+app.get('/album/:name', (req, res) => {
+  const albumPath = path.join(uploadBase, req.params.name);
+  if (!fs.existsSync(albumPath)) return res.send("Album not found");
+
+  const files = fs.readdirSync(albumPath);
+  if (files.length === 0) {
+    return res.send(`<h1>📸 Album: ${req.params.name}</h1><p>No photos yet.</p><a href='/upload-form'>Upload Now</a>`);
+  }
+
+  let html = `<h1>📸 Album: ${req.params.name}</h1>`;
+  files.forEach(file => {
+    html += `<img src="/uploads/${req.params.name}/${file}" style="width:150px;margin:5px;">`;
+  });
+  html += "<br><a href='/albums'>⬅ Back to Albums</a>";
+  res.send(html);
 });
 
-// Download
-app.get('/download/:filename', (req, res) => {
-  const filePath = path.join(uploadBase, req.params.filename);
-  if (fs.existsSync(filePath)) res.download(filePath);
-  else res.send("<h2>❌ File not found</h2><a href='/gallery'>Back to Gallery</a>");
-});
-
-// Start Server
+// ====== Start Server ======
 app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
