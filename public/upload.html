@@ -5,16 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload Photos</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <h1>📤 Upload Your Photos</h1>
-    <form action="/upload" method="POST" enctype="multipart/form-data" class="upload-box">
-      <input type="file" name="photos" multiple required class="file-input" />
-      <button type="submit" class="btn-primary">Upload</button>
+  <header class="app-bar">
+    <h1>Upload Photos</h1>
+  </header>
+
+  <main class="container">
+    <form action="/upload" method="POST" enctype="multipart/form-data" class="card upload-card">
+      <label for="photos" class="drop-zone">📤 Drag & Drop or Click to select photos</label>
+      <input type="file" id="photos" name="photos" multiple hidden required>
+      <button type="submit" class="btn">Upload</button>
     </form>
-    <a href="/gallery.html" class="btn-secondary">View Gallery</a>
-  </div>
+    <a href="/gallery" class="back-link">⬅ Back to Gallery</a>
+  </main>
 </body>
 </html>

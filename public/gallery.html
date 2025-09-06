@@ -3,70 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photo Gallery</title>
+  <title>Gallery</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    .gallery-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
-    .photo-card {
-      background: #fff;
-      padding: 10px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      text-align: center;
-      transition: transform 0.3s;
-    }
-    .photo-card:hover {
-      transform: scale(1.05);
-    }
-    .photo-card img {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 10px;
-    }
-    .photo-actions {
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-around;
-    }
-    .btn-delete {
-      background: #e53935;
-    }
-    .btn-delete:hover {
-      background: #b71c1c;
-    }
-    .btn-download {
-      background: #43a047;
-    }
-    .btn-download:hover {
-      background: #2e7d32;
-    }
-  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🖼️ My Photo Gallery</h1>
+  <header class="app-bar">
+    <h1>My Gallery</h1>
+  </header>
+
+  <main class="container">
     <div class="gallery-grid">
-      <!-- Example Photo Card -->
-      <div class="photo-card">
-        <img src="/uploads/sample.jpg" alt="Photo">
-        <div class="photo-actions">
-          <form action="/delete" method="POST">
-            <input type="hidden" name="filename" value="sample.jpg">
-            <button type="submit" class="btn-delete">Delete</button>
-          </form>
-          <a href="/download/sample.jpg" class="btn-download">Download</a>
-        </div>
-      </div>
+      <!-- server injected images -->
     </div>
-    <br>
-    <a href="/" class="btn-secondary">⬅ Back to Home</a>
-  </div>
+    <a href="/" class="back-link">⬅ Back Home</a>
+  </main>
 </body>
 </html>
