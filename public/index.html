@@ -2,72 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Photo App - Home</title>
+  <title>VaultPix 🔒 – Secure Photo Vault</title>
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #007BFF, #00C6FF);
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: white;
-      text-align: center;
     }
-    .container {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(10px);
+    .card {
+      background: rgba(255, 255, 255, 0.08);
       padding: 40px;
       border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      max-width: 400px;
-      width: 100%;
+      backdrop-filter: blur(12px);
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+      width: 350px;
+      animation: fadeIn 1s ease-in-out;
     }
     h1 {
+      margin-bottom: 10px;
       font-size: 28px;
-      margin-bottom: 20px;
     }
     p {
-      font-size: 16px;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
+      font-size: 15px;
+      opacity: 0.9;
     }
-    .btn {
-      display: block;
-      padding: 12px 20px;
-      margin: 10px auto;
+    .login-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      color: #333;
       border: none;
-      border-radius: 10px;
-      font-size: 18px;
-      font-weight: bold;
+      padding: 12px 20px;
+      border-radius: 50px;
+      font-size: 16px;
       cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
       text-decoration: none;
-      color: white;
-      transition: transform 0.2s, background 0.3s;
     }
-    .upload-btn {
-      background: #28a745;
-    }
-    .upload-btn:hover {
-      background: #218838;
+    .login-btn:hover {
+      background: #f1f1f1;
       transform: scale(1.05);
     }
-    .gallery-btn {
-      background: #ffc107;
-      color: black;
+    .login-btn img {
+      width: 20px;
+      height: 20px;
     }
-    .gallery-btn:hover {
-      background: #e0a800;
-      transform: scale(1.05);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>📸 Welcome to Photo App</h1>
-    <p>Upload, view and manage your photos with style</p>
-    <a href="/upload" class="btn upload-btn">⬆ Upload Photos</a>
-    <a href="/gallery" class="btn gallery-btn">📷 View Gallery</a>
+  <div class="card">
+    <h1>VaultPix 🔒</h1>
+    <p>Your Secure Photo Vault</p>
+    <a class="login-btn" href="/auth/google">
+      <img src="https://cdn-icons-png.flaticon.com/512/281/281764.png" alt="Google logo">
+      Sign in with Google
+    </a>
   </div>
 </body>
 </html>
