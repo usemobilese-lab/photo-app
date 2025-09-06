@@ -2,22 +2,186 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload Photos</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 400px;
+    }
+    .drop-area {
+      border: 2px dashed #007BFF;
+      padding: 20px;
+      border-radius: 10px;
+      background: #f9f9ff;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .drop-area:hover {
+      background: #eef4ff;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .preview {
+      margin-top: 15px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 80px);
+      gap: 10px;
+      justify-content: center;
+    }
+    .preview div {
+      position: relative;
+    }
+    .preview img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .remove-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    progress {
+      width: 100%;
+      margin-top: 15px;
+      height: 12px;
+      border-radius: 6px;
+    }
+    button {
+      margin-top: 15px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .links {
+      margin-top: 15px;
+    }
+    .links a {
+      display: inline-block;
+      margin: 5px;
+      text-decoration: none;
+      color: #007BFF;
+    }
+  </style>
 </head>
 <body>
-  <header class="app-bar">
+  <div class="container">
     <h1>Upload Photos</h1>
-  </header>
-
-  <main class="container">
-    <form action="/upload" method="POST" enctype="multipart/form-data" class="card upload-card">
-      <label for="photos" class="drop-zone">📤 Drag & Drop or Click to select photos</label>
-      <input type="file" id="photos" name="photos" multiple hidden required>
-      <button type="submit" class="btn">Upload</button>
+    <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+      <div class="drop-area" onclick="fileInput.click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+        Drag & Drop photos here or click to select
+      </div>
+      <input type="file" id="fileInput" name="photos" multiple onchange="previewFiles()" />
+      <div class="preview" id="preview"></div>
+      <progress id="progressBar" value="0" max="100" style="display:none;"></progress>
+      <button type="submit">Upload</button>
     </form>
-    <a href="/gallery" class="back-link">⬅ Back to Gallery</a>
-  </main>
+    <div class="links">
+      <a href="/gallery">Go to Gallery</a> |
+      <a href="/">⬅ Back to Home</a>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    let selectedFiles = [];
+
+    function previewFiles() {
+      selectedFiles = Array.from(fileInput.files);
+      renderPreview();
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      selectedFiles = Array.from(e.dataTransfer.files);
+      renderPreview();
+    }
+
+    function renderPreview() {
+      preview.innerHTML = "";
+      selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const div = document.createElement("div");
+          div.innerHTML = `
+            <img src="${e.target.result}">
+            <button type="button" class="remove-btn" onclick="removeFile(${index})">×</button>
+          `;
+          preview.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removeFile(index) {
+      selectedFiles.splice(index, 1);
+      const dt = new DataTransfer();
+      selectedFiles.forEach(file => dt.items.add(file));
+      fileInput.files = dt.files;
+      renderPreview();
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData();
+      selectedFiles.forEach(file => formData.append('photos', file));
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/upload', true);
+
+      xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+          const percent = (e.loaded / e.total) * 100;
+          const progressBar = document.getElementById('progressBar');
+          progressBar.style.display = 'block';
+          progressBar.value = percent;
+        }
+      };
+
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          alert('✅ Upload successful!');
+          window.location.href = "/gallery";
+        } else {
+          alert('❌ Upload failed!');
+        }
+      };
+
+      xhr.send(formData);
+    });
+  </script>
 </body>
 </html>
