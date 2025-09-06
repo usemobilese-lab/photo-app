@@ -3,19 +3,379 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gallery</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <title>Photo & Video Gallery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #667eea, #764ba2);
+      --container-bg: rgba(255, 255, 255, 0.15);
+      --text-color: white;
+      --link-color: #ffebcd;
+      --img-glow: 0 6px 14px rgba(102,126,234,0.6);
+    }
+    body.dark {
+      --bg-gradient: linear-gradient(135deg, #1e1e2f, #12121a);
+      --container-bg: rgba(0, 0, 0, 0.3);
+      --text-color: #f1f1f1;
+      --link-color: #9ecbff;
+      --img-glow: 0 6px 14px rgba(0, 255, 157, 0.6);
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text-color);
+      transition: background 0.5s, color 0.3s;
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      color: var(--text-color);
+    }
+    .theme-toggle:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1);
+    }
+
+    .container {
+      background: var(--container-bg);
+      backdrop-filter: blur(12px);
+      margin: 80px auto 40px;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 1000px;
+      animation: fadeIn 0.8s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* Gallery Grid */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+    }
+    .gallery-item {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .gallery-item img,
+    .gallery-item video {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 14px;
+      display: block;
+    }
+    .gallery-item:hover img,
+    .gallery-item:hover video {
+      transform: scale(1.08);
+      box-shadow: var(--img-glow);
+    }
+
+    /* Remove button */
+    .remove-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #ff4757;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 22px;
+      transition: transform 0.3s ease;
+      z-index: 3;
+    }
+    .remove-btn:hover {
+      transform: rotate(90deg) scale(1.2);
+      animation: pulse 0.6s infinite alternate;
+    }
+    @keyframes pulse {
+      from { transform: rotate(90deg) scale(1.1); }
+      to { transform: rotate(90deg) scale(1.3); }
+    }
+
+    /* Video thumbnail overlay */
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0) 70%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none;
+    }
+    .play-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      color: white;
+      background: rgba(0,0,0,0.5);
+      border-radius: 50%;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: transform 0.3s ease, background 0.3s ease;
+      z-index: 2;
+    }
+    .play-overlay:hover {
+      transform: translate(-50%, -50%) scale(1.2);
+      background: rgba(0,0,0,0.7);
+    }
+    .video-duration {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.75);
+      color: white;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Links */
+    .links {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .links a {
+      display: inline-block;
+      margin: 5px;
+      text-decoration: none;
+      color: var(--link-color);
+      font-weight: 500;
+    }
+    .links a:hover {
+      text-decoration: underline;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img,
+    .lightbox video {
+      max-width: 90%;
+      max-height: 70%;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    .caption {
+      margin-top: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #f1f1f1;
+      text-align: center;
+    }
+    .lightbox .controls {
+      margin-top: 15px;
+    }
+    .lightbox button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 18px;
+      margin: 0 10px;
+      color: white;
+      transition: 0.3s;
+    }
+    .lightbox button:hover {
+      background: rgba(255,255,255,0.4);
+      transform: scale(1.1);
+    }
+  </style>
 </head>
 <body>
-  <header class="app-bar">
-    <h1>My Gallery</h1>
-  </header>
+  <!-- Theme toggle -->
+  <button class="theme-toggle" id="themeToggle">🌙</button>
 
-  <main class="container">
-    <div class="gallery-grid">
-      <!-- server injected images -->
+  <div class="container">
+    <h1>📷 My Gallery</h1>
+    <div class="gallery-grid" id="gallery">
+      <!-- Example Image -->
+      <div class="gallery-item" data-type="image">
+        <img src="https://picsum.photos/id/1015/400/300" alt="Beautiful Landscape" data-index="0">
+        <button class="remove-btn">×</button>
+      </div>
+      <!-- Example Video -->
+      <div class="gallery-item" data-type="video">
+        <video src="https://www.w3schools.com/html/mov_bbb.mp4" muted></video>
+        <div class="video-overlay"></div>
+        <div class="play-overlay">▶</div>
+        <span class="video-duration">--:--</span>
+        <button class="remove-btn">×</button>
+      </div>
     </div>
-    <a href="/" class="back-link">⬅ Back Home</a>
-  </main>
+
+    <div class="links">
+      <a href="/">⬅ Back to Home</a> |
+      <a href="/upload">📤 Upload More</a>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <img src="" alt="Preview" id="lightboxImg" style="display:none;">
+    <video id="lightboxVideo" controls autoplay loop style="display:none;"></video>
+    <div class="caption" id="lightboxCaption"></div>
+    <div class="controls">
+      <button id="prevBtn">⬅</button>
+      <button id="nextBtn">➡</button>
+      <button id="closeBtn">✖</button>
+    </div>
+  </div>
+
+<script>
+  // Theme toggle
+  const toggleBtn = document.getElementById("themeToggle");
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+    toggleBtn.textContent = "☀️";
+  }
+  toggleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    toggleBtn.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+  });
+
+  // Remove functionality
+  document.querySelectorAll(".remove-btn").forEach(btn => {
+    btn.addEventListener("click", e => e.target.closest(".gallery-item").remove());
+  });
+
+  // Gallery lightbox
+  const galleryItems = document.querySelectorAll(".gallery-item");
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightboxImg");
+  const lightboxVideo = document.getElementById("lightboxVideo");
+  const lightboxCaption = document.getElementById("lightboxCaption");
+  let currentIndex = 0;
+
+  function showLightbox(index) {
+    currentIndex = index;
+    const item = galleryItems[currentIndex];
+    const type = item.dataset.type;
+
+    if (type === "image") {
+      lightboxImg.src = item.querySelector("img").src.replace("/400/300", "/800/600");
+      lightboxImg.style.display = "block";
+      lightboxVideo.style.display = "none";
+      lightboxCaption.textContent = item.querySelector("img").alt || "Image";
+    } else if (type === "video") {
+      lightboxVideo.src = item.querySelector("video").src;
+      lightboxVideo.style.display = "block";
+      lightboxImg.style.display = "none";
+      lightboxCaption.textContent = "Video";
+      lightboxVideo.play();
+    }
+    lightbox.classList.add("active");
+  }
+
+  galleryItems.forEach((item, index) => {
+    if (item.dataset.type === "image") {
+      item.querySelector("img").addEventListener("click", () => showLightbox(index));
+    } else if (item.dataset.type === "video") {
+      item.querySelector(".play-overlay").addEventListener("click", () => showLightbox(index));
+    }
+  });
+
+  // Navigation
+  document.getElementById("prevBtn").addEventListener("click", () => {
+    currentIndex = (currentIndex - 1 + galleryItems.length) % galleryItems.length;
+    showLightbox(currentIndex);
+  });
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    currentIndex = (currentIndex + 1) % galleryItems.length;
+    showLightbox(currentIndex);
+  });
+  document.getElementById("closeBtn").addEventListener("click", () => {
+    lightbox.classList.remove("active");
+    lightboxVideo.pause();
+  });
+  lightbox.addEventListener("click", e => {
+    if (e.target === lightbox) {
+      lightbox.classList.remove("active");
+      lightboxVideo.pause();
+    }
+  });
+
+  // Keyboard navigation
+  document.addEventListener("keydown", e => {
+    if (!lightbox.classList.contains("active")) return;
+    if (e.key === "ArrowLeft") {
+      currentIndex = (currentIndex - 1 + galleryItems.length) % galleryItems.length;
+      showLightbox(currentIndex);
+    } else if (e.key === "ArrowRight") {
+      currentIndex = (currentIndex + 1) % galleryItems.length;
+      showLightbox(currentIndex);
+    } else if (e.key === "Escape") {
+      lightbox.classList.remove("active");
+      lightboxVideo.pause();
+    }
+  });
+
+  // Format time
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  }
+  // Set video durations
+  document.querySelectorAll(".gallery-item[data-type='video']").forEach(item => {
+    const video = item.querySelector("video");
+    const durationLabel = item.querySelector(".video-duration");
+    video.addEventListener("loadedmetadata", () => {
+      durationLabel.textContent = formatTime(video.duration);
+    });
+  });
+</script>
 </body>
 </html>

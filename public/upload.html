@@ -2,111 +2,215 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Upload Photos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Media</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #667eea, #764ba2);
+      --container-bg: rgba(255, 255, 255, 0.15);
+      --text-color: white;
+      --link-color: #ffebcd;
+      --progress-bg: #e3e3ff;
+      --progress-fill: linear-gradient(90deg, #4facfe, #00f2fe);
+      --img-glow: 0 4px 12px rgba(102,126,234,0.6);
+      --ripple-color: rgba(255,255,255,0.6);
+    }
+    body.dark {
+      --bg-gradient: linear-gradient(135deg, #1e1e2f, #12121a);
+      --container-bg: rgba(0, 0, 0, 0.3);
+      --text-color: #f1f1f1;
+      --link-color: #9ecbff;
+      --progress-bg: #2b2b3d;
+      --progress-fill: linear-gradient(90deg, #00c6ff, #00ff9d);
+      --img-glow: 0 4px 14px rgba(0, 255, 157, 0.6);
+      --ripple-color: rgba(255,255,255,0.4);
+    }
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f9;
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-gradient);
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
       margin: 0;
+      color: var(--text-color);
+      transition: background 0.5s, color 0.3s;
+    }
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      color: var(--text-color);
+    }
+    .theme-toggle:hover {
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1);
     }
     .container {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      background: var(--container-bg);
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
       text-align: center;
-      width: 400px;
+      width: 420px;
+      animation: fadeIn 0.8s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-weight: 600;
     }
     .drop-area {
-      border: 2px dashed #007BFF;
-      padding: 20px;
-      border-radius: 10px;
-      background: #f9f9ff;
+      border: 2px dashed rgba(255,255,255,0.6);
+      padding: 25px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.1);
       cursor: pointer;
       transition: 0.3s;
+      font-size: 14px;
     }
     .drop-area:hover {
-      background: #eef4ff;
+      background: rgba(255,255,255,0.2);
     }
-    input[type="file"] {
-      display: none;
-    }
+    input[type="file"] { display: none; }
+
+    /* Preview */
     .preview {
       margin-top: 15px;
       display: grid;
-      grid-template-columns: repeat(auto-fill, 80px);
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, 100px);
+      gap: 12px;
       justify-content: center;
     }
     .preview div {
       position: relative;
+      overflow: hidden;
+      border-radius: 12px;
     }
-    .preview img {
-      width: 80px;
-      height: 80px;
+    .preview img,
+    .preview video {
+      width: 100px;
+      height: 100px;
       object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.4);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .preview img:hover,
+    .preview video:hover {
+      transform: scale(1.08);
+      box-shadow: var(--img-glow);
     }
     .remove-btn {
       position: absolute;
       top: -8px;
       right: -8px;
-      background: red;
+      background: #ff4757;
       color: white;
       border: none;
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 14px;
+      line-height: 20px;
+      transition: transform 0.3s ease;
     }
+    .remove-btn:hover {
+      transform: rotate(90deg) scale(1.2);
+    }
+
+    /* Progress bar */
     progress {
       width: 100%;
       margin-top: 15px;
-      height: 12px;
-      border-radius: 6px;
+      height: 16px;
+      border-radius: 8px;
+      appearance: none;
     }
-    button {
-      margin-top: 15px;
-      background: #007BFF;
+    progress::-webkit-progress-bar {
+      background: var(--progress-bg);
+      border-radius: 8px;
+    }
+    progress::-webkit-progress-value {
+      background: var(--progress-fill);
+      border-radius: 8px;
+    }
+
+    /* Upload button */
+    .upload-btn {
+      position: relative;
+      overflow: hidden;
+      margin-top: 20px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
+      padding: 12px 22px;
+      border-radius: 10px;
       cursor: pointer;
       font-size: 16px;
+      font-weight: 600;
+      transition: 0.3s;
     }
-    button:hover {
-      background: #0056b3;
+    .upload-btn:hover {
+      background: linear-gradient(135deg, #5a6fd6, #6b3f8d);
+      transform: translateY(-2px);
     }
+    .upload-btn span.ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      background-color: var(--ripple-color);
+      pointer-events: none;
+    }
+    @keyframes ripple {
+      to { transform: scale(4); opacity: 0; }
+    }
+
     .links {
       margin-top: 15px;
     }
     .links a {
-      display: inline-block;
       margin: 5px;
       text-decoration: none;
-      color: #007BFF;
+      color: var(--link-color);
+      font-weight: 500;
     }
+    .links a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
+  <!-- Theme toggle -->
+  <button class="theme-toggle" id="themeToggle">🌙</button>
+
   <div class="container">
-    <h1>Upload Photos</h1>
+    <h1>📤 Upload Media</h1>
     <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
       <div class="drop-area" onclick="fileInput.click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
-        Drag & Drop photos here or click to select
+        Drag & Drop files here<br>or <b>click to select</b>
       </div>
-      <input type="file" id="fileInput" name="photos" multiple onchange="previewFiles()" />
+      <input type="file" id="fileInput" name="media" multiple accept="image/*,video/*" onchange="previewFiles()" />
       <div class="preview" id="preview"></div>
       <progress id="progressBar" value="0" max="100" style="display:none;"></progress>
-      <button type="submit">Upload</button>
+      <button type="submit" class="upload-btn">🚀 Upload</button>
     </form>
     <div class="links">
       <a href="/gallery">Go to Gallery</a> |
@@ -114,28 +218,27 @@
     </div>
   </div>
 
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const preview = document.getElementById('preview');
-    let selectedFiles = [];
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const preview = document.getElementById('preview');
+  let selectedFiles = [];
 
-    function previewFiles() {
-      selectedFiles = Array.from(fileInput.files);
-      renderPreview();
-    }
-
-    function handleDrop(e) {
-      e.preventDefault();
-      selectedFiles = Array.from(e.dataTransfer.files);
-      renderPreview();
-    }
-
-    function renderPreview() {
-      preview.innerHTML = "";
-      selectedFiles.forEach((file, index) => {
+  function previewFiles() {
+    selectedFiles = Array.from(fileInput.files);
+    renderPreview();
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    selectedFiles = Array.from(e.dataTransfer.files);
+    renderPreview();
+  }
+  function renderPreview() {
+    preview.innerHTML = "";
+    selectedFiles.forEach((file, index) => {
+      const div = document.createElement("div");
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = e => {
-          const div = document.createElement("div");
           div.innerHTML = `
             <img src="${e.target.result}">
             <button type="button" class="remove-btn" onclick="removeFile(${index})">×</button>
@@ -143,45 +246,85 @@
           preview.appendChild(div);
         };
         reader.readAsDataURL(file);
-      });
-    }
-
-    function removeFile(index) {
-      selectedFiles.splice(index, 1);
-      const dt = new DataTransfer();
-      selectedFiles.forEach(file => dt.items.add(file));
-      fileInput.files = dt.files;
-      renderPreview();
-    }
-
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const formData = new FormData();
-      selectedFiles.forEach(file => formData.append('photos', file));
-
-      const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/upload', true);
-
-      xhr.upload.onprogress = function(e) {
-        if (e.lengthComputable) {
-          const percent = (e.loaded / e.total) * 100;
-          const progressBar = document.getElementById('progressBar');
-          progressBar.style.display = 'block';
-          progressBar.value = percent;
-        }
-      };
-
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          alert('✅ Upload successful!');
-          window.location.href = "/gallery";
-        } else {
-          alert('❌ Upload failed!');
-        }
-      };
-
-      xhr.send(formData);
+      } else if (file.type.startsWith("video/")) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          div.innerHTML = `
+            <video src="${e.target.result}" muted controls></video>
+            <button type="button" class="remove-btn" onclick="removeFile(${index})">×</button>
+          `;
+          preview.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+      }
     });
-  </script>
+  }
+  function removeFile(index) {
+    selectedFiles.splice(index, 1);
+    const dt = new DataTransfer();
+    selectedFiles.forEach(file => dt.items.add(file));
+    fileInput.files = dt.files;
+    renderPreview();
+  }
+
+  // Upload handling
+  document.getElementById('uploadForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const formData = new FormData();
+    selectedFiles.forEach(file => formData.append('media', file));
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload', true);
+
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) {
+        const percent = (e.loaded / e.total) * 100;
+        const progressBar = document.getElementById('progressBar');
+        progressBar.style.display = 'block';
+        progressBar.value = percent;
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        alert('✅ Upload successful!');
+        window.location.href = "/gallery";
+      } else {
+        alert('❌ Upload failed!');
+      }
+    };
+    xhr.send(formData);
+  });
+
+  // Ripple effect
+  document.querySelector(".upload-btn").addEventListener("click", function (e) {
+    const circle = document.createElement("span");
+    const diameter = Math.max(this.clientWidth, this.clientHeight);
+    const radius = diameter / 2;
+    circle.style.width = circle.style.height = `${diameter}px`;
+    circle.style.left = `${e.clientX - this.offsetLeft - radius}px`;
+    circle.style.top = `${e.clientY - this.offsetTop - radius}px`;
+    circle.classList.add("ripple");
+    const ripple = this.getElementsByClassName("ripple")[0];
+    if (ripple) ripple.remove();
+    this.appendChild(circle);
+  });
+
+  // Dark/Light toggle
+  const toggleBtn = document.getElementById("themeToggle");
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+    toggleBtn.textContent = "☀️";
+  }
+  toggleBtn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    if (document.body.classList.contains("dark")) {
+      toggleBtn.textContent = "☀️";
+      localStorage.setItem("theme", "dark");
+    } else {
+      toggleBtn.textContent = "🌙";
+      localStorage.setItem("theme", "light");
+    }
+  });
+</script>
 </body>
 </html>
