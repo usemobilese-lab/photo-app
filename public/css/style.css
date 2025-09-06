@@ -1,50 +1,66 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Poppins', sans-serif;
   background: #f4f6f9;
   margin: 0;
-  padding: 0;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 }
 
-header {
-  background: #0078d7;
-  color: white;
-  padding: 20px;
-}
-
-h1, h2 {
-  margin: 10px 0;
-}
-
-main {
-  margin: 20px;
-}
-
-.card {
+.container {
   background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  display: inline-block;
-  max-width: 400px;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+  text-align: center;
+  max-width: 600px;
   width: 90%;
 }
 
-.btn {
-  display: block;
-  margin: 10px 0;
-  padding: 12px;
+h1 {
+  color: #2196f3;
+  margin-bottom: 1rem;
+}
+
+p {
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-delete,
+.btn-download {
+  display: inline-block;
+  margin: 8px 5px;
   text-decoration: none;
-  background: #0078d7;
-  color: white;
+  border: none;
+  padding: 12px 20px;
   border-radius: 8px;
-  transition: background 0.3s;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+  color: #fff;
 }
 
-.btn:hover {
-  background: #005fa3;
+.btn-primary {
+  background: #2196f3;
+}
+.btn-primary:hover {
+  background: #1976d2;
 }
 
-.btn.back {
+.btn-secondary {
   background: #555;
+}
+.btn-secondary:hover {
+  background: #333;
+}
+
+.upload-box {
+  margin: 20px 0;
+}
+.file-input {
+  margin-bottom: 15px;
 }
