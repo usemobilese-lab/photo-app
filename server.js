@@ -1,74 +1,59 @@
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// ====== File Upload Setup ======
-const uploadBase = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadBase)) fs.mkdirSync(uploadBase);
-
-app.use('/uploads', express.static(uploadBase));
-app.use(express.static(path.join(__dirname, 'public'))); // serve public folder
-
-// ====== Routes ======
-
-// Root
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Upload Page
-app.get('/upload', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'upload.html'));
-});
-
-// Upload Handler
+// Storage setup for uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadBase),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + '-' + file.originalname);
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
   }
 });
-const upload = multer({ storage }).array('photos');
 
-app.post('/upload', (req, res) => {
-  upload(req, res, err => {
-    if (err) return res.send("Upload error: " + err.message);
-    res.send(`<h2>✅ Photos uploaded successfully!</h2><a href="/gallery">Go to Gallery</a>`);
+const upload = multer({ storage: storage });
+
+app.use(express.static("public"));
+app.use("/uploads", express.static("uploads"));
+
+// Home page (upload form)
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Handle photo upload
+app.post("/upload", upload.single("photo"), (req, res) => {
+  res.send(`
+    <h2>Photo uploaded successfully ✅</h2>
+    <p><a href="/gallery">Go to Gallery</a></p>
+  `);
+});
+
+// Show gallery
+app.get("/gallery", (req, res) => {
+  fs.readdir("uploads", (err, files) => {
+    if (err) {
+      return res.send("Error loading gallery");
+    }
+    let gallery = files
+      .map(
+        (file) => `<img src="/uploads/${file}" style="width:200px;margin:10px;">`
+      )
+      .join("");
+    res.send(`
+      <h2>📸 Photo Gallery</h2>
+      <div>${gallery}</div>
+      <p><a href="/">Upload more</a></p>
+    `);
   });
 });
 
-// Gallery Page
-app.get('/gallery', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'gallery.html'));
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
-
-// Delete a File
-app.post('/delete', express.urlencoded({ extended: true }), (req, res) => {
-  const filePath = path.join(uploadBase, req.body.filename);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  res.redirect('/gallery');
-});
-
-// Download a File
-app.get('/download/:filename', (req, res) => {
-  const filePath = path.join(uploadBase, req.params.filename);
-  if (fs.existsSync(filePath)) {
-    res.download(filePath);
-  } else {
-    res.send("<h2>❌ File not found</h2><a href='/gallery'>Back to Gallery</a>");
-  }
-});
-
-// ====== API - List uploaded files ======
-app.get('/api/files', (req, res) => {
-  const files = fs.readdirSync(uploadBase);
-  res.json(files);
-});
-
-// Start Server
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
