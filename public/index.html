@@ -3,24 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PhotoApp</title>
-  <link rel="stylesheet" href="/css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>PhotoApp | Login/Sign Up</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f2f5; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
+    .container { background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); width:350px; text-align:center; }
+    .btns { display:flex; justify-content:space-around; margin-bottom:15px; }
+    .btns button { flex:1; padding:10px; border:none; cursor:pointer; font-weight:bold; background:#ddd; }
+    .btns button.active { background:#1877f2; color:white; }
+    .form { display:none; flex-direction:column; gap:10px; }
+    .form input, .form select, .form button { padding:10px; border-radius:5px; border:1px solid #ccc; }
+    .form button { background:#1877f2; color:white; border:none; cursor:pointer; font-weight:bold; }
+    #profilePreview { width:80px; height:80px; border-radius:50%; object-fit:cover; margin:0 auto 10px; }
+    .password-wrapper { position:relative; }
+    .password-wrapper span { position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; }
+  </style>
 </head>
 <body>
-  <header class="app-bar">
-    <h1>📷 PhotoApp</h1>
-  </header>
 
-  <main class="home">
-    <section class="hero-text">
-      <h2>Your Memories, Organized</h2>
-      <p>Upload, view, and manage photos with a clean & modern interface.</p>
-      <div class="actions">
-        <a href="/upload-form" class="btn fab">➕</a>
-        <a href="/gallery" class="btn">Open Gallery</a>
-      </div>
-    </section>
-  </main>
+<div class="container">
+  <h2>Welcome to PhotoApp</h2>
+  <div class="btns">
+    <button id="loginBtn" class="active">Login</button>
+    <button id="signupBtn">Sign Up</button>
+  </div>
+
+  <!-- Login Form -->
+  <form id="loginForm" class="form" style="display:flex;">
+    <input type="email" id="loginEmail" placeholder="Email" required>
+    <div class="password-wrapper">
+      <input type="password" id="loginPassword" placeholder="Password" required>
+      <span onclick="togglePassword('loginPassword')">👁️</span>
+    </div>
+    <button type="submit">Login</button>
+  </form>
+
+  <!-- Signup Form -->
+  <form id="signupForm" class="form">
+    <img id="profilePreview" src="images/placeholder.png" alt="Profile Preview">
+    <input type="file" id="profilePhoto" accept="image/*">
+    <input type="text" id="fullName" placeholder="Full Name" required>
+    <input type="date" id="dob" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="tel" id="phone" placeholder="Phone Number" required>
+    <select id="gender" required>
+      <option value="">Select Gender</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+    </select>
+    <div class="password-wrapper">
+      <input type="password" id="password" placeholder="Password" required>
+      <span onclick="togglePassword('password')">👁️</span>
+    </div>
+    <button type="submit">Sign Up</button>
+  </form>
+</div>
+
+<script>
+  // Toggle forms
+  const loginBtn=document.getElementById("loginBtn");
+  const signupBtn=document.getElementById("signupBtn");
+  const loginForm=document.getElementById("loginForm");
+  const signupForm=document.getElementById("signupForm");
+
+  loginBtn.addEventListener("click",()=>{
+    loginBtn.classList.add("active");
+    signupBtn.classList.remove("active");
+    loginForm.style.display="flex";
+    signupForm.style.display="none";
+  });
+
+  signupBtn.addEventListener("click",()=>{
+    signupBtn.classList.add("active");
+    loginBtn.classList.remove("active");
+    signupForm.style.display="flex";
+    loginForm.style.display="none";
+  });
+
+  // Profile photo preview
+  document.getElementById("profilePhoto").addEventListener("change",(e)=>{
+    const file=e.target.files[0];
+    if(file){
+      const reader=new FileReader();
+      reader.onload=()=>{document.getElementById("profilePreview").src=reader.result;};
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Signup
+  signupForm.addEventListener("submit",(e)=>{
+    e.preventDefault();
+    let users=JSON.parse(localStorage.getItem("users"))||[];
+    const email=document.getElementById("email").value;
+    if(users.find(u=>u.email===email)){ alert("User already exists!"); return; }
+
+    const newUser={
+      name:document.getElementById("fullName").value,
+      dob:document.getElementById("dob").value,
+      email:email,
+      phone:document.getElementById("phone").value,
+      gender:document.getElementById("gender").value,
+      password:document.getElementById("password").value,
+      photo:document.getElementById("profilePreview").src,
+      friends:[]
+    };
+
+    users.push(newUser);
+    localStorage.setItem("users",JSON.stringify(users));
+    localStorage.setItem("currentUser",JSON.stringify(newUser));
+    window.location.href="profile.html";
+  });
+
+  // Login
+  loginForm.addEventListener("submit",(e)=>{
+    e.preventDefault();
+    const email=document.getElementById("loginEmail").value;
+    const password=document.getElementById("loginPassword").value;
+    const users=JSON.parse(localStorage.getItem("users"))||[];
+    const existingUser=users.find(u=>u.email===email&&u.password===password);
+    if(existingUser){
+      localStorage.setItem("currentUser",JSON.stringify(existingUser));
+      window.location.href="profile.html";
+    } else { alert("Invalid email or password!"); }
+  });
+
+  // Auto redirect
+  if(localStorage.getItem("currentUser")) window.location.href="profile.html";
+
+  // Toggle password visibility
+  function togglePassword(id){
+    const input=document.getElementById(id);
+    input.type=(input.type==="password")?"text":"password";
+  }
+</script>
 </body>
 </html>

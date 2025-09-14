@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PhotoApp | Chat</title>
+<style>
+  body{margin:0;font-family:Arial}
+  .top{background:#1877f2;color:#fff;padding:10px;display:flex;justify-content:space-between;align-items:center}
+  .layout{display:flex;height:calc(100vh - 50px)}
+  .list{width:280px;border-right:1px solid #ddd;overflow:auto}
+  .chat{flex:1;display:flex;flex-direction:column}
+  .messages{flex:1;padding:12px;overflow:auto;background:#f7f7f7}
+  .compose{display:flex;padding:8px;border-top:1px solid #ddd}
+  input[type=text]{flex:1;padding:8px;border-radius:6px;border:1px solid #ccc}
+  button{margin-left:8px;padding:8px 12px;border:none;border-radius:6px;background:#1877f2;color:#fff;cursor:pointer}
+  .user-item{padding:10px;border-bottom:1px solid #eee;cursor:pointer}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div>PhotoApp Chat</div>
+    <div><a href="feed.html" style="color:white">Back to Feed</a></div>
+  </div>
+
+  <div class="layout">
+    <div class="list" id="usersList"></div>
+    <div class="chat">
+      <div class="messages" id="messages"></div>
+      <div class="compose">
+        <input id="msgInput" type="text" placeholder="Type a message...">
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.1/socket.io.min.js"></script>
+  <script>
+    const API_BASE = "http://192.168.18.189:8080";
+    const TOKEN = localStorage.getItem('token');
+    const USER = JSON.parse(localStorage.getItem('user') || 'null');
+    if(!TOKEN) window.location.href='index.html';
+
+    const socket = io(API_BASE);
+    socket.emit('join', { token: TOKEN });
+
+    // load users (simple: from /api/users is not implemented here; we'll list followers/following from server's users collection if you add route)
+    // For demo, you can search users from localStorage store or call an API if you implement it.
+    async function fetchUsers(){
+      // If you have route GET /api/users/list (not provided), replace below.
+      // For now, using a naive approach: show only currentUser -> you can add search to open chat with someone.
+      const usersList = document.getElementById('usersList');
+      usersList.innerHTML = `<div style="padding:12px">Open chat by searching users (not implemented) — or click your own name to test.</div>
+        <div class="user-item" data-email="${USER.email}">${USER.name} (you)</div>`;
+      document.querySelectorAll('.user-item').forEach(el=>{
+        el.addEventListener('click', ()=> openChat(el.dataset.email));
+      });
+    }
+
+    let currentChatWith = null;
+
+    async function openChat(email){
+      currentChatWith = email;
+      document.getElementById('messages').innerHTML = '';
+      const res = await fetch(`${API_BASE}/api/chats/${email}`, { headers: { 'Authorization': 'Bearer ' + TOKEN }});
+      const msgs = await res.json();
+      msgs.forEach(renderMsg);
+    }
+
+    function renderMsg(m){
+      const el = document.createElement('div');
+      el.style.marginBottom='8px';
+      el.innerHTML = `<b>${m.from === USER.email ? 'You' : m.from}</b>: ${m.text} <div style="font-size:11px;color:#666">${new Date(m.time).toLocaleString()}</div>`;
+      document.getElementById('messages').appendChild(el);
+      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    }
+
+    // receive realtime
+    socket.on('new_message', (msg) => {
+      if((msg.from === currentChatWith && msg.to === USER.email) || (msg.to === currentChatWith && msg.from === USER.email) || msg.from === USER.email){
+        renderMsg(msg);
+      }
+    });
+
+    document.getElementById('sendBtn').addEventListener('click', ()=>{
+      sendMessage();
+    });
+    document.getElementById('msgInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendMessage(); });
+
+    function sendMessage(){
+      const text = document.getElementById('msgInput').value.trim();
+      if(!text || !currentChatWith){ alert('Select a user to chat'); return; }
+      socket.emit('private_message', { toEmail: currentChatWith, text });
+      document.getElementById('msgInput').value = '';
+    }
+
+    fetchUsers();
+  </script>
+</body>
+</html>

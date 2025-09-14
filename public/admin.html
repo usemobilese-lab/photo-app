@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoApp | Admin Panel</title>
+  <style>
+    body { font-family:Arial,sans-serif; background:#f0f2f5; margin:0; padding:20px; }
+    h2 { color:#1877f2; }
+    .user-list { background:white; padding:15px; border-radius:10px; box-shadow:0 0 5px rgba(0,0,0,0.1); overflow-x:auto; }
+    .user-list table { width:100%; border-collapse:collapse; }
+    .user-list th, .user-list td { padding:10px; border-bottom:1px solid #ccc; text-align:left; }
+    .user-list th { background:#1877f2; color:white; }
+  </style>
+</head>
+<body>
+  <h2>Admin Panel - Registered Users</h2>
+  <p>Total Users: <span id="userCount">0</span></p>
+
+  <div class="user-list">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Username</th>
+          <th>Phone</th>
+          <th>Password</th>
+        </tr>
+      </thead>
+      <tbody id="userTable"></tbody>
+    </table>
+  </div>
+
+<script>
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  document.getElementById("userCount").textContent = users.length;
+
+  const userTable = document.getElementById("userTable");
+  users.forEach(u=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML = `
+      <td>${u.name || "-"}</td>
+      <td>${u.email || "-"}</td>
+      <td>${u.username ? "@"+u.username : "-"}</td>
+      <td>${u.phone || "-"}</td>
+      <td>${u.password || "-"}</td>
+    `;
+    userTable.appendChild(tr);
+  });
+</script>
+</body>
+</html>

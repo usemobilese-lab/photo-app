@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
     Copyright 2021 Google Inc. All Rights Reserved.
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +14,15 @@
      limitations under the License.
 -->
 <resources>
-  
 
-  <!--
+
+    <!--
     This variable below expresses the relationship between the app and the site,
     as documented in the TWA documentation at
     https://developers.google.com/web/updates/2017/10/using-twa#set_up_digital_asset_links_in_an_android_app
     and is injected into the AndroidManifest.xml
   -->
-  <string name="assetStatements">
+    <string name="assetStatements">
     [{
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
         \"target\": {
@@ -32,5 +31,5 @@
         }
     }]
     
-  </string>  
+  </string>
 </resources>

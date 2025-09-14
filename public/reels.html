@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>PhotoApp | Reels</title>
+<style>
+  body{margin:0;background:#000;color:#fff;font-family:Arial}
+  .top{background:#111;padding:10px;display:flex;justify-content:space-between;align-items:center}
+  .upload{padding:10px;background:#fff;color:#000}
+  .reels-container{height:calc(100vh - 60px);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  video{max-height:100vh;width:100%;object-fit:cover}
+  .controls{position:fixed;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px}
+  button{padding:8px 12px;border-radius:6px;border:none;cursor:pointer}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div style="color:#fff;font-weight:700">Reels</div>
+    <div class="upload">
+      <input id="reelUpload" type="file" accept="video/*">
+    </div>
+  </div>
+
+  <div class="reels-container" id="reelsContainer"></div>
+
+  <script>
+    const API_BASE = "http://192.168.18.189:8080";
+    const TOKEN = localStorage.getItem('token');
+    if(!TOKEN) window.location.href='index.html';
+
+    // load all posts with mediaType 'video'
+    async function loadReels(){
+      const res = await fetch(`${API_BASE}/api/posts`, { headers: { 'Authorization': 'Bearer ' + TOKEN }});
+      const posts = await res.json();
+      const reels = posts.filter(p => p.mediaType === 'video');
+      renderReels(reels);
+    }
+
+    function renderReels(reels){
+      const container = document.getElementById('reelsContainer');
+      container.innerHTML='';
+      if(reels.length===0){ container.innerHTML = '<p style="color:#fff">No reels yet</p>'; return; }
+      // show first video large and allow up/down swipe using keyboard for demo
+      let idx = 0;
+      function show(){
+        container.innerHTML = '';
+        const p = reels[idx];
+        const v = document.createElement('video'); v.src = API_BASE + p.media; v.controls=true; v.autoplay=true; v.loop=false; v.muted=false;
+        container.appendChild(v);
+      }
+      document.addEventListener('keydown', (e)=>{
+        if(e.key === 'ArrowDown'){ idx = (idx+1) % reels.length; show(); }
+        if(e.key === 'ArrowUp'){ idx = (idx-1 + reels.length) % reels.length; show(); }
+      });
+      show();
+    }
+
+    document.getElementById('reelUpload').addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return alert('Select a video');
+      const fd = new FormData(); fd.append('media', file); fd.append('caption', '');
+      const res = await fetch(`${API_BASE}/api/posts`, { method:'POST', headers: { 'Authorization':'Bearer ' + TOKEN }, body: fd });
+      if(res.ok){ alert('Reel uploaded'); loadReels(); } else { alert('Upload failed'); }
+    });
+
+    loadReels();
+  </script>
+</body>
+</html>

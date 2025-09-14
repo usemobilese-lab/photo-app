@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhotoApp | My Profile</title>
+  <style>
+    body { margin:0; font-family:Arial,sans-serif; background:#f0f2f5; }
+    nav { background:#1877f2; color:white; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; position:relative; }
+    nav a, nav button { color:white; text-decoration:none; margin-left:15px; font-weight:bold; background:none; border:none; cursor:pointer; }
+    nav input { padding:5px; border:none; border-radius:5px; width:200px; }
+
+    #profileContainer { max-width:600px; margin:20px auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 5px rgba(0,0,0,0.1); text-align:center; }
+    #profileContainer img { width:100px; height:100px; border-radius:50%; object-fit:cover; }
+    #profileContainer h3 { margin:10px 0 5px; }
+    #profileContainer p { color:gray; margin:5px 0; }
+
+    #editForm { margin-top:15px; display:flex; flex-direction:column; gap:10px; text-align:left; }
+    #editForm input, #editForm textarea { padding:8px; border:1px solid #ccc; border-radius:5px; width:100%; }
+    #editForm label { font-size:14px; }
+    #editForm button { padding:10px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; }
+    .saveBtn { background:#1877f2; color:white; }
+    .deleteBtn { background:red; color:white; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav>
+    <span>PhotoApp</span>
+    <div>
+      <input type="text" id="searchInput" placeholder="Search users...">
+      <div id="searchResults"></div>
+    </div>
+    <div>
+      <a href="feed.html">Feed</a>
+      <a href="reels.html">Reels</a>
+      <a href="profile.html">My Profile</a>
+      <a href="chat.html">Chats</a>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+
+  <div id="profileContainer">
+    <img id="profilePic" src="images/placeholder.png" alt="Profile Picture">
+    <h3 id="profileName"></h3>
+    <p id="profileEmail"></p>
+    <p id="profilePhone"></p>
+    <p id="profileBio"></p>
+
+    <form id="editForm">
+      <label>Change Profile Photo</label>
+      <input type="file" id="newProfilePic" accept="image/*">
+
+      <label>Full Name</label>
+      <input type="text" id="editName">
+
+      <label>Phone</label>
+      <input type="tel" id="editPhone">
+
+      <label>Bio</label>
+      <textarea id="editBio" placeholder="Write something about yourself..."></textarea>
+
+      <label><input type="checkbox" id="hideEmail"> Hide Email from others</label>
+      <label><input type="checkbox" id="hidePhone"> Hide Phone from others</label>
+
+      <button type="submit" class="saveBtn">Save Changes</button>
+      <button type="button" id="deleteAccount" class="deleteBtn">Delete Account</button>
+    </form>
+  </div>
+
+<script>
+  let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  if(!currentUser){ alert("Please login first!"); window.location.href="index.html"; }
+
+  // Navbar logout
+  document.getElementById("logoutBtn").addEventListener("click",()=>{
+    localStorage.removeItem("currentUser");
+    window.location.href="index.html";
+  });
+
+  // Load user data
+  document.getElementById("profilePic").src = currentUser.profilePic || "images/placeholder.png";
+  document.getElementById("profileName").textContent = currentUser.name;
+  document.getElementById("profileEmail").textContent = currentUser.hideEmail ? "Private" : currentUser.email;
+  document.getElementById("profilePhone").textContent = currentUser.hidePhone ? "Private" : (currentUser.phone || "No phone");
+  document.getElementById("profileBio").textContent = currentUser.bio || "No bio yet";
+
+  // Prefill edit form
+  document.getElementById("editName").value = currentUser.name;
+  document.getElementById("editPhone").value = currentUser.phone || "";
+  document.getElementById("editBio").value = currentUser.bio || "";
+  document.getElementById("hideEmail").checked = currentUser.hideEmail || false;
+  document.getElementById("hidePhone").checked = currentUser.hidePhone || false;
+
+  // Save changes
+  document.getElementById("editForm").addEventListener("submit",(e)=>{
+    e.preventDefault();
+
+    currentUser.name=document.getElementById("editName").value.trim();
+    currentUser.phone=document.getElementById("editPhone").value.trim();
+    currentUser.bio=document.getElementById("editBio").value.trim();
+    currentUser.hideEmail=document.getElementById("hideEmail").checked;
+    currentUser.hidePhone=document.getElementById("hidePhone").checked;
+
+    const file=document.getElementById("newProfilePic").files[0];
+    if(file){
+      const reader=new FileReader();
+      reader.onload=()=>{
+        currentUser.profilePic=reader.result;
+        saveUser();
+      };
+      reader.readAsDataURL(file);
+    } else {
+      saveUser();
+    }
+  });
+
+  function saveUser(){
+    let users=JSON.parse(localStorage.getItem("users"))||[];
+    let index=users.findIndex(u=>u.email===currentUser.email);
+    if(index!==-1){ users[index]=currentUser; }
+    localStorage.setItem("users",JSON.stringify(users));
+    localStorage.setItem("currentUser",JSON.stringify(currentUser));
+    alert("Profile updated!");
+    location.reload();
+  }
+
+  // Delete account
+  document.getElementById("deleteAccount").addEventListener("click",()=>{
+    if(confirm("Are you sure you want to delete your account?")){
+      let users=JSON.parse(localStorage.getItem("users"))||[];
+      users=users.filter(u=>u.email!==currentUser.email);
+      localStorage.setItem("users",JSON.stringify(users));
+      localStorage.removeItem("currentUser");
+      alert("Account deleted!");
+      window.location.href="index.html";
+    }
+  });
+</script>
+</body>
+</html>

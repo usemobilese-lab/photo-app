@@ -1,138 +1,50 @@
-:root {
-  --primary: #6750a4;
-  --secondary: #03dac6;
-  --bg: #fefefe;
-  --surface: #ffffff;
-  --text: #1d1b20;
-  --radius: 16px;
-}
-
 body {
-  margin: 0;
   font-family: 'Poppins', sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  background-color: #6FD3E3;  /* unique cyan */
+  margin: 0;
+  padding: 0;
 }
 
-/* App Bar */
-.app-bar {
-  background: var(--primary);
-  color: white;
-  padding: 16px;
-  text-align: center;
-  font-size: 1.2rem;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-/* Home */
-.hero-text {
-  text-align: center;
-  margin-top: 60px;
-}
-
-.hero-text h2 {
-  font-size: 2rem;
-  margin-bottom: 10px;
-}
-
-.hero-text p {
-  color: #555;
-  margin-bottom: 30px;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-}
-
-/* Buttons */
-.btn {
-  background: var(--primary);
+nav {
+  background-color: #07689f; /* dark blue/nav unique */
   color: white;
   padding: 12px 20px;
-  border-radius: var(--radius);
-  text-decoration: none;
-  font-weight: 600;
-  transition: 0.3s;
+  font-size: 18px;
 }
 
-.btn:hover {
-  background: #7f67be;
-}
-
-.fab {
-  border-radius: 50%;
-  padding: 16px;
-  font-size: 1.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Upload */
-.container {
-  padding: 20px;
-  max-width: 900px;
-  margin: auto;
-}
-
-.card {
-  background: var(--surface);
-  padding: 25px;
-  border-radius: var(--radius);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.drop-zone {
-  display: block;
-  padding: 40px;
-  border: 2px dashed var(--primary);
-  border-radius: var(--radius);
-  margin-bottom: 20px;
+button {
+  background-color: #ff6f61;  /* coral button */
+  color: white;
+  border-radius: 12px;
+  padding: 8px 16px;
+  border: none;
   cursor: pointer;
-  text-align: center;
-  font-weight: 500;
-  color: #555;
   transition: 0.3s;
 }
 
-.drop-zone:hover {
-  background: rgba(103,80,164,0.05);
+button:hover {
+  background-color: #e65b50;
 }
 
-/* Gallery */
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
-  gap: 20px;
-  margin-top: 20px;
+.feed-post {
+  background: white;
+  padding: 10px;
+  margin: 15px auto;
+  max-width: 600px;
+  border-radius: 12px;
+  box-shadow: 0px 3px 8px rgba(0,0,0,0.1);
 }
 
-.gallery-grid div {
-  background: var(--surface);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: 0.3s;
+.feed-post img {
+  max-width: 100%;
+  border-radius: 12px;
 }
 
-.gallery-grid div:hover {
-  transform: translateY(-5px);
+.feed-post .caption {
+  margin-top: 8px;
+  font-size: 16px;
 }
 
-.gallery-grid img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  display: block;
-}
-
-.back-link {
-  display: inline-block;
-  margin-top: 20px;
-  color: var(--primary);
-  font-weight: 600;
-  text-decoration: none;
+.feed-post .actions {
+  margin-top: 10px;
 }

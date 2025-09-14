@@ -6,7 +6,27 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "multer": "^1.4.4-lts.1"
-  }
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "cloudinary": "^1.41.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^4.21.2",
+    "express-session": "^1.18.2",
+    "mongoose": "^8.18.0",
+    "multer": "^1.4.4",
+    "multer-storage-cloudinary": "^4.0.0"
+  },
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usemobilese-lab/photo-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/usemobilese-lab/photo-app/issues"
+  },
+  "homepage": "https://github.com/usemobilese-lab/photo-app#readme"
 }
