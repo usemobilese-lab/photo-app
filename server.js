@@ -6,15 +6,14 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const cors = require("cors");
 const multer = require("multer");
 const mongoose = require("mongoose");
-const path = require("path"); // ✅ Ye line zaroori hai
+const path = require("path");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
 
-// ✅ Smart URL Handling (Render vs Localhost)
+// ✅ Smart URL Handling (Automatic Production Link)
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://photo-app-e3co.onrender.com";
-const BACKEND_URL = process.env.BACKEND_URL || "https://photo-app-e3co.onrender.com";
 
 app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 app.use(express.json());
@@ -41,7 +40,7 @@ passport.deserializeUser((obj, done) => done(null, obj));
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: `/auth/google/callback` // ✅ Automatic Path handling
+  callbackURL: `/auth/google/callback`
 }, (accessToken, refreshToken, profile, done) => {
   const user = { id: profile.id, name: profile.displayName, email: profile.emails[0].value, photo: profile.photos[0].value };
   done(null, user);
@@ -49,13 +48,13 @@ passport.use(new GoogleStrategy({
 
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
-// ✅ Login Success Logic
+// ✅ Login Success Logic (Mobile Friendly)
 app.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/" }), (req, res) => {
   res.send(`
     <script>
       window.opener.postMessage(
         { type: "google-auth-success", user: ${JSON.stringify(req.user)} },
-        "*" // ✅ Mobile fix: Allow all origins for popup handshake
+        "*" 
       );
       window.close();
     </script>
@@ -99,11 +98,10 @@ app.delete("/api/gallery/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
-// ✅ SABSE ZAROORI HISSA: Frontend Serve Karna 
-// Ye server ko batata hai ki "frontend/dist" folder mein website hai
+// ✅ SABSE ZAROORI: Website Serve Karna (Frontend Connection)
+// Isse Desktop aur Phone dono par App dikhegi
 app.use(express.static(path.join(__dirname, "frontend/dist")));
 
-// Agar koi aur link khule, to wapis website par bhejo
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
 });
